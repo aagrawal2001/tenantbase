@@ -58,6 +58,40 @@ class TestDataLayer(unittest.TestCase):
             all_values, [{"key": key, "value": new_value, "flags": new_flags}]
         )
 
+    def test_get_one_value_that_exists(self):
+        key = "greeting"
+        value = b"Hello World!"
+        flags = 1543
+        self.data_layer.set_value(key, value, flags)
+        values = list(self.data_layer.get_values((key,)))
+        self.assertEqual(
+            values, [{"key": key, "value": value, "flags": flags}]
+        )
+
+    def test_get_one_value_that_does_not_exist(self):
+        key = "greeting"
+        value = b"Hello World!"
+        flags = 1543
+        self.data_layer.set_value("foo", value, flags)
+        values = list(self.data_layer.get_values((key,)))
+        self.assertEqual(values, [])
+
+    def test_get_multiple_values_which_all_exist(self):
+        expected_values = self.insert_records(10)
+        keys = [v["key"] for v in expected_values]
+        keys.reverse()
+        values = list(self.data_layer.get_values(keys))
+        self.assertListEqual(expected_values, values)
+
+    def test_get_multiple_values_some_of_which_exist(self):
+        expected_values = self.insert_records(10)
+        keys = [v["key"] for v in expected_values]
+        keys.append("foo")
+        keys.append("bar")
+        keys.append("baz")
+        values = list(self.data_layer.get_values(keys))
+        self.assertListEqual(expected_values, values)
+
     def test_get_all_values(self):
         expected_values = self.insert_records(10)
         all_values = list(self.data_layer.get_all_values())

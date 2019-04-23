@@ -45,13 +45,30 @@ class DataLayer:
                     WHERE (SELECT CHANGES() = 0)
                 """, (key, value, flags))
 
+    def get_values(self, keys):
+        """
+        Fetches data for the requested keys.
+
+        :param keys: a list of keys to fetch data for.
+        :return: a generator which iterates over each key/value pair returning
+        a dictionary containing mapping the key, value and flags to
+        their values in each iteration.
+        """
+        with closing(sqlite3.connect(self.db)) as con:
+            con.row_factory = sqlite3.Row
+            with con:
+                query = "SELECT * FROM KEY_VALUE_PAIRS WHERE KEY IN (%s)" \
+                        % ",".join("?" * len(keys))
+                for row in con.execute(query, keys):
+                    yield DataLayer._row_to_dict(row)
+
     def get_all_values(self):
         """
         Fetch all key/value pairs from the database.
 
-        :return: a generator which iterates over each key/value pair and
-        returns a dictionary containing mapping the key, value and flags to
-        their values.
+        :return: a generator which iterates over each key/value pair returning
+        a dictionary containing mapping the key, value and flags to
+        their values in each iteration.
         """
         with closing(sqlite3.connect(self.db)) as con:
             con.row_factory = sqlite3.Row
