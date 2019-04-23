@@ -36,6 +36,7 @@ class MemcacheReceiver(LineReceiver):
         self.sendLine(self.CLIENT_ERROR % error)
 
     def doSet(self, args):
+        logger.info("set {}".format(args))
         if len(args) > 5 or len(args) < 4:
             self.sendClientError(self.INCORRECT_NUM_ARGUMENTS)
             return
@@ -61,6 +62,7 @@ class MemcacheReceiver(LineReceiver):
         self.setRawMode()
 
     def doGet(self, args):
+        logger.info("get {}".format(args))
         for row in self.data_layer.get_values(args):
             value = row["value"]
             self.sendLine(
@@ -71,6 +73,7 @@ class MemcacheReceiver(LineReceiver):
         self.sendLine(self.END)
 
     def doDelete(self, args):
+        logger.info("delete {}".format(args))
         # delete expects exactly one or two arguments
         if len(args) > 2 or len(args) == 0:
             self.sendClientError(self.INCORRECT_NUM_ARGUMENTS)
