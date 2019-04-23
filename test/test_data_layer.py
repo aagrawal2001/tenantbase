@@ -5,6 +5,7 @@ from contextlib import closing
 from data_layer import DataLayer
 from schema import create_schema
 
+
 class TestDataLayer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -105,9 +106,10 @@ class TestDataLayer(unittest.TestCase):
             flags = i * 3
             self.data_layer.set_value(key, value, flags)
             expected_values.append(
-                { "key": key, "value": value, "flags": flags }
+                {"key": key, "value": value, "flags": flags}
             )
         return expected_values
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -19,4 +19,4 @@ def create_schema(db):
                 VALUE   BLOB,
                 FLAGS   INTEGER
             )"""
-        )
+                    )
