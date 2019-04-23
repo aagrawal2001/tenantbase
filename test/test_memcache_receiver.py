@@ -71,6 +71,7 @@ class MemcacheReceiverTestCase(unittest.TestCase):
     def test_unrecognized_command(self):
         self._test_ascii_command("blink foo bar\r\n", b"ERROR\r\n")
 
+    # TODO: refactor and remove some code duplication here
     def test_get_one_value(self):
         key = "foo"
         value = b"Value 1"

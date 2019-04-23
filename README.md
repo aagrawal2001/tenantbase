@@ -41,6 +41,6 @@ one SQL statement by making use of ON CONFLICT UPDATE.
 
 ## Meta
 
-Your Name – Andy Agrawal – aagrawal2001@gmail.com
+Andy Agrawal – aagrawal2001@gmail.com
 
 Distributed under the GPL v3 license. See ``LICENSE`` for more information.
