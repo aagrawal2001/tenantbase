@@ -86,6 +86,23 @@ class MemcacheReceiverTestCase(unittest.TestCase):
         self._test_ascii_command(command, expected_response)
         self.data_layer.get_values.assert_called_once_with([key])
 
+    def test_get_one_binary_value(self):
+        key = "foo"
+        byte_array = bytearray([120, 3, 255, 0, 100])
+        value = bytes(byte_array)
+        flags = 64
+        self.data_layer.get_values.return_value = [
+            {"key": key, "value": value, "flags": flags}
+        ]
+        command = "get %s\r\n" % key
+        expected_response = b"VALUE %s %d %d\r\n" % \
+                            (key.encode(), flags, len(value))
+        expected_response += b"%s\r\n" % value
+        expected_response += b"END\r\n"
+        self._test_ascii_command(command, expected_response)
+        self.data_layer.get_values.assert_called_once_with([key])
+
+    # TODO: make this test more robust by making it key-order independent
     def test_get_multiple_values_when_only_one_exists(self):
         key1, key2 = "foo", "bar"
         keys = [key1, key2]
