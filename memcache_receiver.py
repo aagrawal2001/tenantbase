@@ -64,7 +64,8 @@ class MemcacheReceiver(LineReceiver):
         for row in self.data_layer.get_values(args):
             value = row["value"]
             self.sendLine(
-                self.VALUE % (row["key"].encode(), row["flags"], len(value))
+                self.VALUE %
+                (row["key"].encode("ascii"), row["flags"], len(value))
             )
             self.sendLine(row["value"])
         self.sendLine(self.END)
@@ -116,7 +117,7 @@ class MemcacheReceiver(LineReceiver):
                 self.setLineMode(left_over)
         except Exception as e:
             logger.exception(e)
-            self.sendLine(self.SERVER_ERROR % repr(e).encode())
+            self.sendLine(self.SERVER_ERROR % repr(e).encode("ascii"))
 
     # Extensible set of commands
     COMMAND_MAP = {
@@ -140,7 +141,7 @@ class MemcacheReceiver(LineReceiver):
             self.COMMAND_MAP[cmd](self, args)
         except Exception as e:
             logger.exception(e)
-            self.transport.write(self.SERVER_ERROR % repr(e).encode())
+            self.transport.write(self.SERVER_ERROR % repr(e).encode("ascii"))
 
 
 class MemcacheFactory(Factory):

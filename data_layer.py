@@ -57,8 +57,12 @@ class DataLayer:
         with closing(sqlite3.connect(self.db)) as con:
             con.row_factory = sqlite3.Row
             with con:
-                query = "SELECT * FROM KEY_VALUE_PAIRS WHERE KEY IN (%s)" \
-                        % ",".join("?" * len(keys))
+                key_placeholders = ",".join("?" * len(keys))
+                query = \
+                    "SELECT * FROM KEY_VALUE_PAIRS WHERE KEY IN ({})".format(
+                        key_placeholders
+                    )
+
                 for row in con.execute(query, keys):
                     yield DataLayer._row_to_dict(row)
 
