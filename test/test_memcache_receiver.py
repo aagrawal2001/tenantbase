@@ -3,6 +3,7 @@ from twisted.trial import unittest
 from twisted.test import proto_helpers
 from unittest import mock
 
+
 class MemcacheReceiverTestCase(unittest.TestCase):
     def setUp(self):
         self.data_layer = mock.Mock()
@@ -34,7 +35,8 @@ class MemcacheReceiverTestCase(unittest.TestCase):
         value = bytes(byte_array)
         flags = 1024
         command = \
-            b"set %s %d %d %d\r\n" % (key.encode('ascii'), flags, 0, len(value))
+            b"set %s %d %d %d\r\n" % \
+            (key.encode('ascii'), flags, 0, len(value))
         command += b"%s\r\n" % value
         self._test_binary_command(command, b"STORED\r\n")
         self.data_layer.set_value.assert_called_once_with(key, value, flags)
@@ -68,4 +70,3 @@ class MemcacheReceiverTestCase(unittest.TestCase):
 
     def test_unrecognized_command(self):
         self._test_ascii_command("blink foo bar\r\n", b"ERROR\r\n")
-
