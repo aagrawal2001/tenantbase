@@ -110,6 +110,21 @@ class TestDataLayer(unittest.TestCase):
             )
         return expected_values
 
+    def test_delete_record_that_exists(self):
+        expected_values = self.insert_records(2)
+        was_it_deleted = \
+            self.data_layer.delete_value(expected_values[1]["key"])
+        self.assertTrue(was_it_deleted)
+        all_values = list(self.data_layer.get_all_values())
+        self.assertListEqual(expected_values[0:1], all_values)
+
+    def test_delete_record_that_does_not_exist(self):
+        expected_values = self.insert_records(2)
+        was_it_deleted = self.data_layer.delete_value("foo")
+        self.assertFalse(was_it_deleted)
+        all_values = list(self.data_layer.get_all_values())
+        self.assertListEqual(expected_values, all_values)
+
 
 if __name__ == '__main__':
     unittest.main()

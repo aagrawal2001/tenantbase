@@ -32,11 +32,11 @@ class DataLayer:
 
                 # First try to update the key if it exists
                 con.execute("""
-                    UPDATE KEY_VALUE_PAIRS 
+                    UPDATE KEY_VALUE_PAIRS
                     SET VALUE = ?, FLAGS = ?
                     WHERE KEY = ?
                 """, (value, flags, key)
-                )
+                            )
 
                 # If they key did not exist, then insert a row for it
                 con.execute("""
@@ -84,3 +84,20 @@ class DataLayer:
             "value": row["value"],
             "flags": row["flags"],
         }
+
+    def delete_value(self, key):
+        """
+        Deletes the specified key and all its data.
+
+        :param key: The key to be deleted.
+        :return: true if the requested key was found and deleted,
+        false otherwise.
+        """
+        with closing(sqlite3.connect(self.db)) as con:
+            with con:
+                con.execute(
+                    "DELETE FROM KEY_VALUE_PAIRS WHERE KEY = ?", (key,)
+                )
+                cur = con.execute("SELECT CHANGES()")
+                changes = cur.fetchone()[0]
+                return changes > 0
