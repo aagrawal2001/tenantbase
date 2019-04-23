@@ -70,3 +70,51 @@ class MemcacheReceiverTestCase(unittest.TestCase):
 
     def test_unrecognized_command(self):
         self._test_ascii_command("blink foo bar\r\n", b"ERROR\r\n")
+
+    def test_get_one_value(self):
+        key = "foo"
+        value = b"Value 1"
+        flags = 64
+        self.data_layer.get_values.return_value = [
+            {"key": key, "value": value, "flags": flags}
+        ]
+        command = "get %s\r\n" % key
+        expected_response = b"VALUE %s %d %d\r\n" % \
+            (key.encode(), flags, len(value))
+        expected_response += b"%s\r\n" % value
+        expected_response += b"END\r\n"
+        self._test_ascii_command(command, expected_response)
+        self.data_layer.get_values.assert_called_once_with([key])
+
+    def test_get_multiple_values_when_only_one_exists(self):
+        key1, key2 = "foo", "bar"
+        keys = [key1, key2]
+        key2_data = {"key": key2, "value": b"Hello World!", "flags": 1024}
+        self.data_layer.get_values.return_value = [key2_data]
+        command = "get %s\r\n" % " ".join(keys)
+        expected_response = b"VALUE %s %d %d\r\n" % \
+            (key2.encode(), key2_data["flags"], len(key2_data["value"]))
+        expected_response += b"%s\r\n" % key2_data["value"]
+        expected_response += b"END\r\n"
+        self._test_ascii_command(command, expected_response)
+        self.data_layer.get_values.assert_called_once_with(keys)
+
+    def test_get_multiple_values(self):
+        keys = []
+        key_data = []
+        expected_response = b""
+        for i in range(10):
+            key = "key%d" % i
+            keys.append(key)
+            value = b"value %d" % i
+            flags = i
+            key_data.append({"key": key, "value": value, "flags": flags})
+            expected_response += b"VALUE %s %d %d\r\n" % \
+                                 (key.encode(), flags, len(value))
+            expected_response += b"%s\r\n" % value
+        expected_response += b"END\r\n"
+
+        self.data_layer.get_values.return_value = key_data
+        command = "get %s\r\n" % " ".join(keys)
+        self._test_ascii_command(command, expected_response)
+        self.data_layer.get_values.assert_called_once_with(keys)

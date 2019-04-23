@@ -15,6 +15,7 @@ class MemcacheReceiver(LineReceiver):
 
     STORED = b"STORED"
     VALUE = b"VALUE %s %d %d"
+    END = b"END"
 
     UNKNOWN_COMMAND_ERROR = b"ERROR"
     CLIENT_ERROR = b"CLIENT_ERROR %s"
@@ -54,7 +55,13 @@ class MemcacheReceiver(LineReceiver):
         self.setRawMode()
 
     def doGet(self, args):
-        pass
+        for row in self.data_layer.get_values(args):
+            value = row["value"]
+            self.sendLine(
+                self.VALUE % (row["key"].encode(), row["flags"], len(value))
+            )
+            self.sendLine(row["value"])
+        self.sendLine(self.END)
 
     def doDelete(self, args):
         pass
