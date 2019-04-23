@@ -6,17 +6,23 @@ logger = logging.getLogger(__name__)
 
 
 class MemcacheReceiver(LineReceiver):
+    # Constants for parsing commands
     CMD_SET = "set"
     CMD_GET = "get"
     CMD_DELETE = "delete"
     NO_REPLY = "noreply"
 
+    # Certain commands are considered "storage" commands
     STORAGE_COMMANDS = frozenset([CMD_SET])
 
+    # Successful response strings
     STORED = b"STORED"
+    DELETED = b"DELETED"
+    NOT_FOUND = b"NOT_FOUND"
     VALUE = b"VALUE %s %d %d"
     END = b"END"
 
+    # Error strings
     UNKNOWN_COMMAND_ERROR = b"ERROR"
     CLIENT_ERROR = b"CLIENT_ERROR %s"
     INCORRECT_NUM_ARGUMENTS = b"Incorrect number of arguments"
@@ -64,7 +70,29 @@ class MemcacheReceiver(LineReceiver):
         self.sendLine(self.END)
 
     def doDelete(self, args):
-        pass
+        # delete expects exactly one or two arguments
+        if len(args) > 2 or len(args) == 0:
+            self.sendClientError(self.INCORRECT_NUM_ARGUMENTS)
+            return
+
+        key = args[0]
+        no_reply = False
+
+        # If there are two arguments, the last one has to be 'noreply'
+        if len(args) == 2:
+            if args[1] != self.NO_REPLY:
+                self.sendClientError(self.EXPECTED_NO_REPLY)
+                return
+            no_reply = True
+
+        # Now delete the data
+        anything_deleted = self.data_layer.delete_value(key)
+        if no_reply:
+            return
+
+        self.sendLine(
+            self.DELETED if anything_deleted else self.NOT_FOUND
+        )
 
     # Reads in the payload to be stored for the 'set' command
     def rawDataReceived(self, data):

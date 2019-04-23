@@ -118,3 +118,34 @@ class MemcacheReceiverTestCase(unittest.TestCase):
         command = "get %s\r\n" % " ".join(keys)
         self._test_ascii_command(command, expected_response)
         self.data_layer.get_values.assert_called_once_with(keys)
+
+    def test_delete_when_value_exists(self):
+        self._test_delete("foo", True, b"DELETED\r\n")
+
+    def test_delete_when_value_does_not_exist(self):
+        self._test_delete("foo", False, b"NOT_FOUND\r\n")
+
+    def _test_delete(self, key, data_layer_return_value, expected_response):
+        command = "delete %s\r\n" % key
+        self.data_layer.delete_value.return_value = data_layer_return_value
+        self._test_ascii_command(command, expected_response)
+        self.data_layer.delete_value.assert_called_once_with(key)
+
+    def test_delete_no_reply(self):
+        key = "foo"
+        command = "delete %s noreply\r\n" % key
+        self.data_layer.delete_value.return_value = True
+        self._test_ascii_command(command, b"")
+        self.data_layer.delete_value.assert_called_once_with(key)
+
+    def test_delete_too_many_arguments(self):
+        self._test_ascii_command(
+            "delete foo noreply junk\r\n",
+            b"CLIENT_ERROR Incorrect number of arguments\r\n"
+        )
+
+    def test_delete_invalid_last_argument(self):
+        self._test_ascii_command(
+            "delete foo noreplytypo\r\n",
+            b"CLIENT_ERROR Invalid last argument - expected 'noreply'\r\n"
+        )
